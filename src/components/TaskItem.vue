@@ -1,0 +1,67 @@
+<script setup>
+import { computed } from 'vue'
+
+const props = defineProps({
+  task: { type: Object, required: true },
+})
+
+const emit = defineEmits(['edit', 'delete'])
+
+const statusConfig = {
+  todo: { label: '待办', color: 'bg-slate-100 text-slate-600' },
+  'in-progress': { label: '进行中', color: 'bg-blue-100 text-blue-600' },
+  done: { label: '完成', color: 'bg-green-100 text-green-600' },
+}
+
+const priorityConfig = {
+  high: { label: '高', dot: 'bg-red-500' },
+  medium: { label: '中', dot: 'bg-yellow-500' },
+  low: { label: '低', dot: 'bg-green-500' },
+}
+
+const statusInfo = computed(() => statusConfig[props.task.status])
+const priorityInfo = computed(() => priorityConfig[props.task.priority])
+</script>
+
+<template>
+  <div class="bg-white border border-slate-200 rounded-lg p-4 shadow-sm hover:shadow-md transition">
+    <div class="flex items-start justify-between gap-3">
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center gap-2">
+          <span class="inline-block w-2.5 h-2.5 rounded-full flex-shrink-0" :class="priorityInfo.dot"></span>
+          <h3 class="text-sm font-medium text-slate-800 truncate">{{ task.title }}</h3>
+        </div>
+        <p v-if="task.description" class="mt-1.5 text-sm text-slate-500 line-clamp-2">{{ task.description }}</p>
+      </div>
+      <div class="flex gap-1 flex-shrink-0">
+        <button
+          @click="emit('edit', task)"
+          class="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded transition"
+          title="编辑"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+          </svg>
+        </button>
+        <button
+          @click="emit('delete', task.id)"
+          class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition"
+          title="删除"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="mt-3 flex items-center gap-2">
+      <span class="px-2 py-0.5 text-xs font-medium rounded-full" :class="statusInfo.color">
+        {{ statusInfo.label }}
+      </span>
+      <span class="px-2 py-0.5 text-xs font-medium rounded-full bg-slate-100 text-slate-500">
+        {{ priorityInfo.label }}优先
+      </span>
+    </div>
+  </div>
+</template>

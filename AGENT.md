@@ -82,6 +82,11 @@ npm run build   # 生产构建，输出到 dist/
 npm run preview # 预览生产构建
 ```
 
+## 工作流程
+- 每次完成代码实现后，先由用户检查确认，**确认后才能推送（git push）**
+- 未经用户确认，不得执行 `git push` 命令
+- 提交（git commit）可以先行，但推送必须等待确认
+
 ## 注意事项
 - 每次修改代码后，提醒刷新浏览器验证效果
 - 不要引入额外的第三方拖拽库（如 vuedraggable），使用原生 HTML5 Drag & Drop API
