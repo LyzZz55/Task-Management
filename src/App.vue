@@ -75,12 +75,14 @@ function handleDropOnTask({ targetId, position }) {
     const nextTask = columnTasks[targetIndex + 1]
     moveTask(draggingId.value, targetTask.status, nextTask?.id || null)
   }
+  endDrag()
 }
 
 // 拖拽：落在某个列的空白区
 function handleDropOnColumn(status) {
   if (!draggingId.value) return
   moveTask(draggingId.value, status, null)
+  endDrag()
 }
 </script>
 
