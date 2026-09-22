@@ -1,16 +1,17 @@
 <script setup>
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 
 const props = defineProps({
   task: { type: Object, required: true },
+  isDragging: { type: Boolean, default: false },
 })
 
-const emit = defineEmits(['edit', 'delete'])
+const emit = defineEmits(['edit', 'delete', 'dragstart', 'dragend', 'drop-on-task'])
 
 const statusConfig = {
-  todo: { label: '待办', color: 'bg-slate-100 text-slate-600' },
-  'in-progress': { label: '进行中', color: 'bg-blue-100 text-blue-600' },
-  done: { label: '完成', color: 'bg-green-100 text-green-600' },
+  todo: { label: '待办', color: 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300' },
+  'in-progress': { label: '进行中', color: 'bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-300' },
+  done: { label: '完成', color: 'bg-green-100 text-green-600 dark:bg-green-900/40 dark:text-green-300' },
 }
 
 const priorityConfig = {
@@ -21,22 +22,69 @@ const priorityConfig = {
 
 const statusInfo = computed(() => statusConfig[props.task.status])
 const priorityInfo = computed(() => priorityConfig[props.task.priority])
+
+// 拖拽插入位置指示
+const dragPosition = ref(null) // 'before' | 'after' | null
+
+function onDragStart(e) {
+  e.dataTransfer.effectAllowed = 'move'
+  e.dataTransfer.setData('text/plain', props.task.id)
+  emit('dragstart', props.task)
+}
+
+function onDragEnd() {
+  dragPosition.value = null
+  emit('dragend')
+}
+
+function onDragOver(e) {
+  e.preventDefault()
+  e.dataTransfer.dropEffect = 'move'
+  const rect = e.currentTarget.getBoundingClientRect()
+  const midpoint = rect.top + rect.height / 2
+  dragPosition.value = e.clientY < midpoint ? 'before' : 'after'
+}
+
+function onDragLeave() {
+  dragPosition.value = null
+}
+
+function onDrop(e) {
+  e.preventDefault()
+  e.stopPropagation()
+  const position = dragPosition.value
+  dragPosition.value = null
+  emit('drop-on-task', { targetId: props.task.id, position })
+}
 </script>
 
 <template>
-  <div class="bg-white border border-slate-200 rounded-lg p-4 shadow-sm hover:shadow-md transition">
+  <div
+    draggable="true"
+    @dragstart="onDragStart"
+    @dragend="onDragEnd"
+    @dragover="onDragOver"
+    @dragleave="onDragLeave"
+    @drop="onDrop"
+    class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-4 shadow-sm hover:shadow-md transition cursor-grab active:cursor-grabbing"
+    :class="[
+      isDragging && 'opacity-40',
+      dragPosition === 'before' && 'border-t-2 border-t-indigo-400',
+      dragPosition === 'after' && 'border-b-2 border-b-indigo-400',
+    ]"
+  >
     <div class="flex items-start justify-between gap-3">
       <div class="flex-1 min-w-0">
         <div class="flex items-center gap-2">
           <span class="inline-block w-2.5 h-2.5 rounded-full flex-shrink-0" :class="priorityInfo.dot"></span>
-          <h3 class="text-sm font-medium text-slate-800 truncate">{{ task.title }}</h3>
+          <h3 class="text-sm font-medium text-slate-800 dark:text-slate-100 truncate">{{ task.title }}</h3>
         </div>
-        <p v-if="task.description" class="mt-1.5 text-sm text-slate-500 line-clamp-2">{{ task.description }}</p>
+        <p v-if="task.description" class="mt-1.5 text-sm text-slate-500 dark:text-slate-400 line-clamp-2">{{ task.description }}</p>
       </div>
       <div class="flex gap-1 flex-shrink-0">
         <button
           @click="emit('edit', task)"
-          class="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded transition"
+          class="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded transition"
           title="编辑"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -45,7 +93,7 @@ const priorityInfo = computed(() => priorityConfig[props.task.priority])
         </button>
         <button
           @click="emit('delete', task.id)"
-          class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition"
+          class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded transition"
           title="删除"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -59,7 +107,7 @@ const priorityInfo = computed(() => priorityConfig[props.task.priority])
       <span class="px-2 py-0.5 text-xs font-medium rounded-full" :class="statusInfo.color">
         {{ statusInfo.label }}
       </span>
-      <span class="px-2 py-0.5 text-xs font-medium rounded-full bg-slate-100 text-slate-500">
+      <span class="px-2 py-0.5 text-xs font-medium rounded-full bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400">
         {{ priorityInfo.label }}优先
       </span>
     </div>

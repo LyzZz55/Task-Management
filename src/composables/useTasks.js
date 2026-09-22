@@ -51,5 +51,44 @@ export function useTasks() {
     tasks.value = tasks.value.filter((t) => t.id !== id)
   }
 
-  return { tasks, createTask, updateTask, deleteTask }
+  // 拖拽状态（模块级共享）
+  const draggingId = ref(null)
+
+  function startDrag(id) {
+    draggingId.value = id
+  }
+
+  function endDrag() {
+    draggingId.value = null
+  }
+
+  function moveTask(draggedId, targetStatus, beforeTaskId) {
+    const draggedIndex = tasks.value.findIndex((t) => t.id === draggedId)
+    if (draggedIndex === -1) return
+    const [draggedTask] = tasks.value.splice(draggedIndex, 1)
+
+    // 更新状态
+    if (draggedTask.status !== targetStatus) {
+      draggedTask.status = targetStatus
+      draggedTask.updatedAt = Date.now()
+      draggedTask.completedAt =
+        targetStatus === 'done'
+          ? draggedTask.completedAt || Date.now()
+          : null
+    }
+
+    // 插入到目标位置
+    if (beforeTaskId) {
+      const beforeIndex = tasks.value.findIndex((t) => t.id === beforeTaskId)
+      if (beforeIndex !== -1) {
+        tasks.value.splice(beforeIndex, 0, draggedTask)
+      } else {
+        tasks.value.push(draggedTask)
+      }
+    } else {
+      tasks.value.push(draggedTask)
+    }
+  }
+
+  return { tasks, createTask, updateTask, deleteTask, draggingId, startDrag, endDrag, moveTask }
 }
