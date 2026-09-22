@@ -15,9 +15,9 @@ const statusConfig = {
 }
 
 const priorityConfig = {
-  high: { label: '高', bar: 'border-l-red-500' },
-  medium: { label: '中', bar: 'border-l-yellow-500' },
-  low: { label: '低', bar: 'border-l-green-500' },
+  high: { label: '高', bar: 'bg-red-500' },
+  medium: { label: '中', bar: 'bg-yellow-500' },
+  low: { label: '低', bar: 'bg-green-500' },
 }
 
 const statusInfo = computed(() => statusConfig[props.task.status])
@@ -66,15 +66,18 @@ function onDrop(e) {
     @dragover="onDragOver"
     @dragleave="onDragLeave"
     @drop="onDrop"
-    class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 border-l-4 rounded-lg p-4 shadow-sm hover:shadow-md transition cursor-grab active:cursor-grabbing"
+    class="flex bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-sm hover:shadow-md transition cursor-grab active:cursor-grabbing overflow-hidden"
     :class="[
-      priorityInfo.bar,
       isDragging && 'opacity-40',
       dragPosition === 'before' && 'border-t-2 border-t-indigo-400',
       dragPosition === 'after' && 'border-b-2 border-b-indigo-400',
     ]"
   >
-    <div class="flex items-start justify-between gap-3">
+    <!-- 优先级色条 -->
+    <div class="w-3 flex-shrink-0" :class="priorityInfo.bar"></div>
+    <!-- 内容 -->
+    <div class="flex-1 p-4">
+      <div class="flex items-start justify-between gap-3">
       <div class="flex-1 min-w-0">
         <h3 class="text-sm font-medium text-slate-800 dark:text-slate-100 truncate">{{ task.title }}</h3>
         <p v-if="task.description" class="mt-1.5 text-sm text-slate-500 dark:text-slate-400 line-clamp-2">{{ task.description }}</p>
@@ -108,6 +111,7 @@ function onDrop(e) {
       <span class="px-2 py-0.5 text-xs font-medium rounded-full bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400">
         {{ priorityInfo.label }}优先
       </span>
+    </div>
     </div>
   </div>
 </template>
